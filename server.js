@@ -29,7 +29,7 @@ await loadPDFs();
 // Chat endpoint
 app.post("/chat", async (req, res) => {
   const response = await client.responses.create({
-    model: "gpt-5.3",
+    model: "gpt-4o-mini",
     input: [
       {
         role: "system",
