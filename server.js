@@ -44,7 +44,7 @@ app.post("/chat", async (req, res) => {
     const userMessage = req.body?.message || "Adj rövid választ.";
 
     const response = await client.chat.completions.create({
-      model: "deepseek/deepseek-chat"
+      model: "deepseek/deepseek-chat",
       max_tokens: 300,
       messages: [
         {
