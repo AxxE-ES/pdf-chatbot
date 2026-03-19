@@ -7,26 +7,32 @@ const app = express();
 app.use(express.json());
 
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1"
 });
 
 // PDF betöltés
 let knowledge = "";
+let loading = false;
 
 async function loadPDFs() {
-  if (knowledge) return; // ne töltse újra
+  if (knowledge || loading) return;
+
+  loading = true;
 
   const files = fs.readdirSync("./pdfs");
+  let temp = "";
 
   for (const file of files) {
     const data = await pdf(fs.readFileSync(`./pdfs/${file}`));
-    knowledge += "\n" + data.text;
+    temp += "\n" + data.text;
   }
+
+  knowledge = temp;
+  loading = false;
 
   console.log("PDF-ek betöltve");
 }
-
-// ❌ NINCS await loadPDFs() itt!
 
 // Chat endpoint
 app.post("/chat", async (req, res) => {
@@ -35,9 +41,12 @@ app.post("/chat", async (req, res) => {
 
     await loadPDFs();
 
-    const response = await client.responses.create({
-      model: "gpt-4o-mini",
-      input: [
+    const userMessage = req.body?.message || "Adj rövid választ.";
+
+    const response = await client.chat.completions.create({
+      model: "stepfun/step-3.5-flash:free",
+      max_tokens: 300,
+      messages: [
         {
           role: "system",
           content: `
@@ -54,13 +63,13 @@ ${knowledge.slice(0, 6000)}
         },
         {
           role: "user",
-          content: req.body.message || "Adj rövid választ."
+          content: userMessage
         }
       ]
     });
 
     res.json({
-      reply: response.output[0].content[0].text
+      reply: response.choices[0].message.content
     });
 
   } catch (err) {
@@ -69,4 +78,5 @@ ${knowledge.slice(0, 6000)}
   }
 });
 
-app.listen(10000, () => console.log("Server fut 10000"));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log("Server fut", PORT));
