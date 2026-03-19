@@ -28,6 +28,11 @@ await loadPDFs();
 
 // Chat endpoint
 app.post("/chat", async (req, res) => {
+
+  if (!knowledge) {
+    await loadPDFs();
+  }
+
   const response = await client.responses.create({
     model: "gpt-4o-mini",
     input: [
@@ -42,7 +47,7 @@ SZABÁLYOK:
 - Ha nincs válasz: "Erre nincs információ a dokumentumban."
 
 DOKUMENTUM:
-${knowledge.slice(0, 12000)}
+${knowledge.slice(0, 6000)}
         `
       },
       {
