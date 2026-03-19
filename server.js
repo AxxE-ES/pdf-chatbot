@@ -14,6 +14,8 @@ const client = new OpenAI({
 let knowledge = "";
 
 async function loadPDFs() {
+  if (knowledge) return; // ne töltse újra
+
   const files = fs.readdirSync("./pdfs");
 
   for (const file of files) {
@@ -24,21 +26,21 @@ async function loadPDFs() {
   console.log("PDF-ek betöltve");
 }
 
-await loadPDFs();
+// ❌ NINCS await loadPDFs() itt!
 
 // Chat endpoint
 app.post("/chat", async (req, res) => {
+  try {
+    console.log("REQ BODY:", req.body);
 
-  if (!knowledge) {
     await loadPDFs();
-  }
 
-  const response = await client.responses.create({
-    model: "gpt-4o-mini",
-    input: [
-      {
-        role: "system",
-        content: `
+    const response = await client.responses.create({
+      model: "gpt-4o-mini",
+      input: [
+        {
+          role: "system",
+          content: `
 Te pályázati szakértő vagy.
 
 SZABÁLYOK:
@@ -48,18 +50,23 @@ SZABÁLYOK:
 
 DOKUMENTUM:
 ${knowledge.slice(0, 6000)}
-        `
-      },
-      {
-        role: "user",
-        content: req.body.message
-      }
-    ]
-  });
+          `
+        },
+        {
+          role: "user",
+          content: req.body.message || "Adj rövid választ."
+        }
+      ]
+    });
 
-  res.json({
-    reply: response.output[0].content[0].text
-  });
+    res.json({
+      reply: response.output[0].content[0].text
+    });
+
+  } catch (err) {
+    console.error("ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.listen(10000, () => console.log("Server fut 10000"));
