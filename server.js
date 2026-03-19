@@ -42,7 +42,7 @@ SZABÁLYOK:
 - Ha nincs válasz: "Erre nincs információ a dokumentumban."
 
 DOKUMENTUM:
-${knowledge}
+${knowledge.slice(0, 12000)}
         `
       },
       {
