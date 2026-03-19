@@ -69,7 +69,12 @@ ${knowledge.slice(0, 6000)}
     });
 
     res.json({
-      reply: response.choices[0].message.content
+     const reply =
+  response.choices?.[0]?.message?.content ||
+  response.choices?.[0]?.text ||
+  JSON.stringify(response);
+
+res.json({ reply });
     });
 
   } catch (err) {
@@ -80,3 +85,4 @@ ${knowledge.slice(0, 6000)}
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log("Server fut", PORT));
+console.log("FULL RESPONSE:", JSON.stringify(response, null, 2));
