@@ -44,8 +44,8 @@ app.post("/chat", async (req, res) => {
     const userMessage = req.body?.message || "Adj rövid választ.";
 
     const response = await client.chat.completions.create({
-      model: "stepfun/step-3.5-flash:free",
-      max_tokens: 300,
+      model: "openrouter/hunter-alpha",
+      max_tokens: 3000,
       messages: [
         {
           role: "system",
