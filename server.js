@@ -50,22 +50,32 @@ async function loadPDFs() {
 
 // ===== EGYSZERŰ KERESŐ =====
 function searchChunks(query) {
-  const keywords = query.toLowerCase().split(" ");
+  const keywords = query
+    .toLowerCase()
+    .replace(/[^\w\s]/g, "")
+    .split(" ")
+    .filter(w => w.length > 3); // kis szavakat kiszűrjük
 
   return chunks
     .map(chunk => {
+      const text = chunk.toLowerCase();
       let score = 0;
 
       for (const word of keywords) {
-        if (chunk.toLowerCase().includes(word)) {
-          score++;
+        if (text.includes(word)) score += 2;
+
+        // részleges egyezés (nagyon fontos!)
+        for (let i = 0; i < word.length - 3; i++) {
+          const part = word.slice(i, i + 4);
+          if (text.includes(part)) score++;
         }
       }
 
       return { chunk, score };
     })
+    .filter(c => c.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 5) // TOP 5 releváns rész
+    .slice(0, 12) // több találat
     .map(c => c.chunk)
     .join("\n\n");
 }
@@ -78,6 +88,12 @@ app.post("/chat", async (req, res) => {
     const userMessage = req.body?.message || "Adj rövid választ.";
 
     const relevantText = searchChunks(userMessage);
+
+if (!relevantText) {
+  return res.json({
+    reply: "Nem találtam releváns részt a dokumentumban."
+  });
+}
 
     const response = await client.chat.completions.create({
       model: "deepseek/deepseek-chat",
