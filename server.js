@@ -45,7 +45,7 @@ app.post("/chat", async (req, res) => {
 
     const response = await client.chat.completions.create({
       model: "openrouter/hunter-alpha",
-      max_tokens: 3000,
+      max_tokens: 300,
       messages: [
         {
           role: "system",
@@ -68,14 +68,13 @@ ${knowledge.slice(0, 6000)}
       ]
     });
 
-    res.json({
-     const reply =
+const reply =
   response.choices?.[0]?.message?.content ||
   response.choices?.[0]?.text ||
   JSON.stringify(response);
 
+// ✅ UTÁNA
 res.json({ reply });
-    });
 
   } catch (err) {
     console.error("ERROR:", err);
@@ -85,4 +84,3 @@ res.json({ reply });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log("Server fut", PORT));
-console.log("FULL RESPONSE:", JSON.stringify(response, null, 2));
